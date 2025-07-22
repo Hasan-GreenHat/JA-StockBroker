@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JA Traders Shares</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f1f1f1;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+      color: #007e33;
+    }
+    input, button {
+      padding: 10px;
+      margin: 8px 0;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #007e33;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005f23;
+    }
+    .hidden {
+      display: none;
+    }
+    .portfolio {
+      margin-top: 20px;
+    }
+    img {
+      width: 100%;
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+    .admin-section {
+      margin-top: 30px;
+      padding: 10px;
+      border-top: 1px dashed #ccc;
+    }
+    .price-box {
+      font-size: 18px;
+      margin: 10px 0;
+      background: #e5fbe5;
+      padding: 10px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>JA Traders Shares</h1>
+
+    <div id="loginSection">
+      <h2>Login</h2>
+      <input type="text" id="certNo" placeholder="Certificate No. (e.g. 0000001)">
+      <input type="password" id="password" placeholder="Password">
+      <button onclick="login()">Login</button>
+      <p id="loginError" style="color:red;"></p>
+    </div>
+
+    <div id="portfolioSection" class="hidden">
+      <h2>Welcome, <span id="userName"></span></h2>
+
+      <div class="price-box">
+        Current Share Price: ₹<span id="currentPrice">2.00</span>
+      </div>
+
+      <p>Total Shares: <strong id="totalShares"></strong></p>
+      <p>Buy Price: ₹<strong id="buyPrice"></strong></p>
+      <p>Amount Invested: ₹<strong id="amountInvested"></strong></p>
+      <p>Current Value: ₹<strong id="currentValue"></strong></p>
+      <p style="color: green;">Profit: ₹<strong id="profit"></strong></p>
+
+      <img id="certificateImg" class="hidden" alt="Certificate Image" />
+
+      <div class="admin-section hidden" id="adminPanel">
+        <h3>Admin Panel</h3>
+        <input type="number" id="newPrice" step="0.01" placeholder="Enter New Share Price (₹)">
+        <button onclick="updatePrice()">Update Price</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let sharePrice = 2.00;
+
+    const users = {
+      "0000001": { name: "Ahmed Hasan Ali", password: "ja123", shares: 85, buyPrice: 2.00 },
+      "0000002": { name: "Mohammed Mustaqeem", password: "123452", shares: 75, buyPrice: 2.00 },
+      "0000003": { name: "Mohammed Dawood", password: "123453", shares: 100, buyPrice: 2.00 },
+      "0000004": { name: "Mohammed Amaan", password: "123454", shares: 150, buyPrice: 2.00 },
+      "0000005": { name: "Mohammadi Begum", password: "123455", shares: 25, buyPrice: 2.00 },
+      "0000006": { name: "Shafiya Begum", password: "123456", shares: 100, buyPrice: 2.00 },
+      "0000007": { name: "Sidra Fatima", password: "123457", shares: 25, buyPrice: 2.00 },
+      "HASAN_FX":   { name: "Ahmed Hasan Trader(CEO)", password: "ja45ja45", admin: true }
+    };
+
+    let currentUser = null;
+
+    function login() {
+      const certNo = document.getElementById("certNo").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      if (users[certNo] && users[certNo].password === password) {
+        currentUser = users[certNo];
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("portfolioSection").classList.remove("hidden");
+
+        document.getElementById("userName").textContent = currentUser.name;
+        document.getElementById("currentPrice").textContent = sharePrice.toFixed(2);
+
+        if (currentUser.admin) {
+          document.getElementById("adminPanel").classList.remove("hidden");
+        } else {
+          const shares = currentUser.shares;
+          const buyPrice = currentUser.buyPrice;
+          const invested = shares * buyPrice;
+          const currentValue = shares * sharePrice;
+          const profit = currentValue - invested;
+
+          document.getElementById("totalShares").textContent = shares;
+          document.getElementById("buyPrice").textContent = buyPrice.toFixed(2);
+          document.getElementById("amountInvested").textContent = invested.toFixed(2);
+          document.getElementById("currentValue").textContent = currentValue.toFixed(2);
+          document.getElementById("profit").textContent = profit.toFixed(2);
+
+          loadCertificateImage(certNo);
+        }
+
+        document.getElementById("loginError").textContent = "";
+      } else {
+        document.getElementById("loginError").textContent = "Invalid certificate number or password.";
+      }
+    }
+
+    function loadCertificateImage(certNo) {
+      const img = document.getElementById("certificateImg");
+      const paddedNo = certNo.slice(-1).padStart(3, '0'); // e.g. "001"
+
+      const tryJPG = `Certificates/${paddedNo}.jpg`;
+      const tryPNG = `Certificates/${paddedNo}.png`;
+
+      const tryImage = new Image();
+      tryImage.onload = function () {
+        img.src = tryImage.src;
+        img.classList.remove("hidden");
+      };
+      tryImage.onerror = function () {
+        img.alt = "Certificate not found.";
+        img.classList.remove("hidden");
+      };
+
+      tryImage.src = tryPNG;
+    }
+
+    function updatePrice() {
+      const newP = parseFloat(document.getElementById("newPrice").value);
+      if (!isNaN(newP) && newP > 0) {
+        sharePrice = newP;
+        document.getElementById("currentPrice").textContent = sharePrice.toFixed(2);
+        alert("Share price updated to ₹" + sharePrice.toFixed(2));
+      }
+    }
+  </script>
+</body>
+</html>

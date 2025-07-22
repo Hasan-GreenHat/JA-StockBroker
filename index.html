@@ -1,0 +1,373 @@
+<!-- Full HTML with investor portfolio viewer added -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JA Share - Stock Broker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --main-color: #0a3d62;
+      --accent-color: #3c6382;
+      --bg-light: #f9f9f9;
+      --text-dark: #222;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg-light);
+      color: var(--text-dark);
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(90deg, var(--main-color), var(--accent-color));
+      padding: 2rem 1rem;
+      color: white;
+      text-align: center;
+    }
+
+    nav {
+      background: white;
+      padding: 0.8rem 2rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: var(--main-color);
+      font-weight: 600;
+      transition: 0.3s;
+    }
+
+    nav a:hover {
+      color: #1e90ff;
+    }
+
+    .section {
+      padding: 3rem 1rem;
+      max-width: 960px;
+      margin: auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    canvas {
+      background: #fff;
+      border: 1px solid #ccc;
+      width: 100%;
+      height: 400px;
+      border-radius: 8px;
+      display: block;
+    }
+
+    #adminLogin, #investorPanel {
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    #adminLogin input, #investorPanel input {
+      padding: 6px;
+      width: 200px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    #adminLogin button, #investorPanel button {
+      padding: 6px 12px;
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      margin-left: 0.5rem;
+      cursor: pointer;
+    }
+
+    #controls {
+      display: none;
+      margin-top: 1rem;
+      text-align: center;
+    }
+
+    #controls input {
+      padding: 6px;
+      width: 60px;
+      margin: 0 0.5rem;
+    }
+
+    #controls button {
+      padding: 8px 16px;
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 0.3rem;
+    }
+
+    #controls button:hover {
+      background: var(--main-color);
+    }
+
+    #controls .reset-btn {
+      background: #e74c3c;
+    }
+
+    footer {
+      background: #f1f1f1;
+      padding: 1rem;
+      text-align: center;
+      color: #444;
+    }
+
+    footer a {
+      color: var(--main-color);
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    #livePrice {
+      display: inline-block;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      background-color: #dff9fb;
+      color: #130f40;
+      padding: 10px 20px;
+      border-radius: 30px;
+      border: 2px solid #22a6b3;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin: 1rem auto;
+      transition: all 0.4s ease;
+      animation: pulse 0.4s ease;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.6; }
+      50% { transform: scale(1.08); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+
+    #portfolioResult {
+      margin-top: 1rem;
+      background: #ecf0f1;
+      padding: 1rem;
+      border-radius: 10px;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>JA Share Broker</h1>
+  <p>Your Physical Share Investment Platform</p>
+</header>
+
+<nav>
+  <ul>
+    <li><a href="#chart">Chart</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<section id="chart" class="section card">
+  <h2>Live Share Chart - JA Traders Stock</h2>
+  <p id="livePrice" class="price-badge">Live Share Price: ₹2.50</p>
+
+  <div id="investorPanel">
+    <h3>Investor Portfolio</h3>
+    <input type="number" id="investorShares" placeholder="No. of Shares" />
+    <input type="number" id="investorBuyPrice" placeholder="Buy Price (₹)" step="0.01" />
+    <button onclick="showPortfolio()">Check Portfolio</button>
+    <div id="portfolioResult" style="display: none;"></div>
+  </div>
+
+  <div id="adminLogin">
+    <input type="password" id="adminPass" placeholder="Enter admin password" />
+    <button onclick="checkAdmin()">Login</button>
+  </div>
+
+  <canvas id="chartCanvas" width="800" height="400"></canvas>
+  <div id="controls">
+    <label>Buy: <input type="number" id="buy" value="2" /></label>
+    <button onclick="buyShares()">Buy</button>
+    <label>Sell: <input type="number" id="sell" value="2" /></label>
+    <button onclick="sellShares()">Sell</button>
+    <button onclick="resetChart()" class="reset-btn">Reset Chart</button>
+  </div>
+</section>
+
+<section id="contact" class="section card">
+  <h2>Contact Us To Buy Our Share</h2>
+  <p>📱 WhatsApp: <a href="https://wa.me/918019671808" target="_blank">+91-8019671808</a></p>
+  <p>📞 Mobile: <a href="tel:+919876543210">+91-8019671808</a></p>
+</section>
+
+<footer>
+  &copy; 2025 JA Share. All rights reserved.
+</footer>
+
+<script>
+  const canvas = document.getElementById("chartCanvas");
+  const ctx = canvas.getContext("2d");
+  const initialPrice = 1;
+  const priceStep = 0.1;
+  const candleW = 20, candleGap = 10;
+  let candles = [];
+  let sharesSold = 0;
+  let currentPrice = initialPrice;
+  let offsetX = 0;
+  let isDragging = false, dragStart = 0;
+
+  function updatePrice() {
+    const priceEl = document.getElementById("livePrice");
+    const prev = currentPrice;
+    if (candles.length) currentPrice = candles[candles.length - 1].close;
+    else currentPrice = initialPrice;
+    const arrow = currentPrice > prev ? "📈" : currentPrice < prev ? "📉" : "➖";
+    priceEl.textContent = `${arrow} Live Share Price: ₹${currentPrice.toFixed(2)}`;
+    priceEl.classList.remove("price-badge");
+    void priceEl.offsetWidth;
+    priceEl.classList.add("price-badge");
+  }
+
+  function drawChart() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const prices = candles.flatMap(c => [c.open, c.close, c.high, c.low]);
+    const max = Math.max(currentPrice, ...prices) + 0.2;
+    const min = Math.min(initialPrice, ...prices) - 0.2;
+    drawYAxis(min, max);
+    candles.forEach((c, i) => {
+      const x = 60 + i * (candleW + candleGap) + offsetX;
+      const yO = scale(c.open, min, max);
+      const yC = scale(c.close, min, max);
+      const yH = scale(c.high, min, max);
+      const yL = scale(c.low, min, max);
+      const color = c.close > c.open ? "green" : c.close < c.open ? "red" : "gray";
+      ctx.strokeStyle = "#222";
+      ctx.beginPath(); ctx.moveTo(x + candleW/2, yH); ctx.lineTo(x + candleW/2, yL); ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.fillRect(x, Math.min(yO, yC), candleW, Math.abs(yO - yC) || 2);
+    });
+  }
+
+  function scale(p, min, max) {
+    const h = canvas.height - 40;
+    return ((max - p) / (max - min)) * h + 20;
+  }
+
+  function drawYAxis(min, max) {
+    ctx.fillStyle = "#444";
+    ctx.font = "12px Arial";
+    ctx.textAlign = "right";
+    for (let i = 0; i <= 6; i++) {
+      const val = min + ((max - min) * i / 6);
+      const y = scale(val, min, max);
+      ctx.fillText(`₹${val.toFixed(2)}`, 55, y);
+    }
+  }
+
+  function buyShares() {
+    const val = parseInt(document.getElementById("buy").value);
+    if (!val) return;
+    const open = currentPrice;
+    const newPrice = +(open + Math.floor(val / 2) * priceStep).toFixed(2);
+    candles.push({ open, close: newPrice, high: newPrice + 0.05, low: Math.min(open, newPrice) - 0.05 });
+    sharesSold += val;
+    localStorage.setItem("ja_candles", JSON.stringify(candles));
+    updatePrice();
+    drawChart();
+  }
+
+  function sellShares() {
+    const val = parseInt(document.getElementById("sell").value);
+    if (!val) return;
+    const open = currentPrice;
+    const newPrice = Math.max(initialPrice, +(open - 0.05 * val).toFixed(2));
+    candles.push({ open, close: newPrice, high: Math.max(open, newPrice) + 0.03, low: Math.min(open, newPrice) - 0.03 });
+    localStorage.setItem("ja_candles", JSON.stringify(candles));
+    updatePrice();
+    drawChart();
+  }
+
+  function resetChart() {
+    if (confirm("Are you sure you want to reset the chart?")) {
+      candles = [];
+      sharesSold = 0;
+      currentPrice = initialPrice;
+      localStorage.removeItem("ja_candles");
+      updatePrice();
+      drawChart();
+    }
+  }
+
+  function checkAdmin() {
+    const pass = document.getElementById("adminPass").value;
+    if (pass === "jaAdmin2025") {
+      document.getElementById("controls").style.display = "block";
+      document.getElementById("adminLogin").style.display = "none";
+    } else {
+      alert("Incorrect password!");
+    }
+  }
+
+  function showPortfolio() {
+    const shares = parseFloat(document.getElementById("investorShares").value);
+    const buyPrice = parseFloat(document.getElementById("investorBuyPrice").value);
+    if (!shares || !buyPrice || shares <= 0 || buyPrice <= 0) {
+      alert("Please enter valid details.");
+      return;
+    }
+    const currentVal = shares * currentPrice;
+    const investVal = shares * buyPrice;
+    const profit = currentVal - investVal;
+    const result = `Shares: ${shares} | Buy @ ₹${buyPrice.toFixed(2)} | Value Now: ₹${currentVal.toFixed(2)} | P/L: ₹${profit.toFixed(2)}`;
+    const box = document.getElementById("portfolioResult");
+    box.textContent = result;
+    box.style.display = "block";
+  }
+
+  canvas.addEventListener("mousedown", e => { isDragging = true; dragStart = e.clientX; });
+  canvas.addEventListener("mouseup", () => isDragging = false);
+  canvas.addEventListener("mousemove", e => {
+    if (!isDragging) return;
+    offsetX += e.clientX - dragStart;
+    dragStart = e.clientX;
+    drawChart();
+  });
+
+  window.onload = () => {
+    const saved = localStorage.getItem("ja_candles");
+    if (saved) candles = JSON.parse(saved);
+    updatePrice();
+    drawChart();
+  };
+</script>
+
+</body>
+</html>
